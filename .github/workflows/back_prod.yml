@@ -31,19 +31,34 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install pytest
           pip install python-dateutil
+          pip install -r requirements.txt
+
+      - name: Create .env.dev file
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> backend/.env.dev
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> backend/.env.dev
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> backend/.env.dev
+          echo "DB_USER=${{ secrets.DB_USER }}" >> backend/.env.dev
+          echo "DB_PASS=${{ secrets.DB_PASS }}" >> backend/.env.dev
 
       - name: Run tests
-        run: pytest -m sls --continue-on-collection-errors -v -W ignore::DeprecationWarning
         working-directory: backend
+        run: pytest -m sls --continue-on-collection-errors -v -W ignore::DeprecationWarning
 
       - name: Deploy to AWS Lambda
-        run: npx serverless deploy --stage prod --verbose
+        run: npx serverless@3.38.0 deploy --stage prod --force --verbose
         working-directory: backend
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}

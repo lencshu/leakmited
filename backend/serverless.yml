@@ -32,13 +32,19 @@ package:
 
 functions:
   leakmited_api:
-    handler: backend/src/main.handler
+    handler: src/main.handler
     timeout: 30
+    environment:
+      DB_HOST: ${env:DB_HOST}
+      DB_PORT: ${env:DB_PORT}
+      DB_NAME: ${env:DB_NAME}
+      DB_USER: ${env:DB_USER}
+      DB_PASS: ${env:DB_PASS}
     package:
       exclude:
         - ./**
       include:
-        - ${self:custom.basePath}/backend/src/**
+        - ${self:custom.basePath}/src/**
     url:
       cors: true
     layers:
