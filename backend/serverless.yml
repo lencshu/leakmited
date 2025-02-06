@@ -48,6 +48,6 @@ functions:
     url:
       cors: true
     layers:
-      - ${cf:${self:custom.layerShared}.TypingLambdaLayerQualifiedArn}
       - ${cf:${self:custom.layerShared}.FastoLambdaLayerQualifiedArn}
       - ${cf:${self:custom.layerShared}.SqloLambdaLayerQualifiedArn}
+      # - ${cf:${self:custom.layerShared}.TypingLambdaLayerQualifiedArn}
