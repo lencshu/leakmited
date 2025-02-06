@@ -9,7 +9,7 @@ class RoadBase(BaseModel):
     maxspeed: Optional[str]
 
     class Config:
-        orm_mode = True  # auto parse Pydantic from orm
+        from_attributes = True  # auto parse Pydantic from orm
 
 
 class StatsBase(BaseModel):
