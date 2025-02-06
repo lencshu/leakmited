@@ -1,0 +1,47 @@
+org: demov
+app: leakmited
+service: leakmited-backend
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: eu-west-3
+  endpointType: REGIONAL
+  versionFunctions: false
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - lambda:InvokeAsync
+            - lambda:InvokeFunction
+            - lambda:GetLayerVersion
+            - s3:*
+          Resource:
+            - arn:aws:lambda:eu-west-3:784039913349:function:*
+            - arn:aws:lambda:eu-west-3:784039913349:layer:*
+            - arn:aws:s3:::*
+
+custom:
+  basePath: "."
+  cwdPath: "."
+  layerShared: "layers-shared-prod"
+
+package:
+  individually: true
+
+functions:
+  leakmited_api:
+    handler: backend/src/main.handler
+    timeout: 30
+    package:
+      exclude:
+        - ./**
+      include:
+        - ${self:custom.basePath}/backend/src/**
+    url:
+      cors: true
+    layers:
+      - ${cf:${self:custom.layerShared}.TypingLambdaLayerQualifiedArn}
+      - ${cf:${self:custom.layerShared}.FastoLambdaLayerQualifiedArn}
+      - ${cf:${self:custom.layerShared}.SqloLambdaLayerQualifiedArn}
