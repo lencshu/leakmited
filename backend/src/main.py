@@ -17,7 +17,7 @@ app.add_middleware(
 )
 metadata.create_all(bind=engine)
 
-app.include_router(roads.router, prefix="/roads", tags=["roads"])
-app.include_router(stats.router, prefix="/stats", tags=["stats"])
+app.include_router(roads.router)
+app.include_router(stats.router)
 
 handler = Mangum(app)

@@ -1,5 +1,5 @@
 # app/routers/stats.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast
 from geoalchemy2.types import Geography
@@ -11,7 +11,14 @@ from src.schemas import StatsBase
 router = APIRouter()
 
 
-@router.get("/", response_model=StatsBase)
+@router.get("/")
+async def root(request: Request):
+    client_ip = request.client.host
+    print(f"Received request for root endpoint from IP: {client_ip}")
+    return {"message": "Hello from Lambda"}
+
+
+@router.get("/stats", response_model=StatsBase)
 def get_stats(db: Session = Depends(get_db)):
     """
     Return road statistics:

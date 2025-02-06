@@ -10,7 +10,7 @@ from src.schemas import RoadBase
 router = APIRouter()
 
 
-@router.get("/", response_model=List[RoadBase])
+@router.get("/roads", response_model=List[RoadBase])
 def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(None, description="Filter roads by maximum speed, such as 50, 90, etc.")):
     """
     Retrieve a list of roads with maxspeed information, optionally filtering by max_speed.
@@ -27,7 +27,7 @@ def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(No
     return roads
 
 
-@router.get("/{osm_id}", response_model=RoadBase)
+@router.get("/roads/{osm_id}", response_model=RoadBase)
 def get_road_by_id(osm_id: int, db: Session = Depends(get_db)):
     """
     Retrieve detailed information about a specific road by osm_id.
