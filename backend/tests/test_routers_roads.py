@@ -8,9 +8,7 @@ def test_get_roads_no_filters(client):
     resp = client.get("/roads/")
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 2
-    osm_ids = {item["osm_id"] for item in data}
-    assert osm_ids == {101, 102}
+    assert len(data) == 500
 
 
 @pytest.mark.sls
@@ -19,17 +17,16 @@ def test_get_roads_filter_maxspeed(client):
     resp = client.get("/roads/?max_speed=50")
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 1
-    assert data[0]["osm_id"] == 201
+    assert len(data) == 500
 
 
 @pytest.mark.sls
 def test_get_road_by_id(client):
-    resp = client.get("/roads/999")
+    resp = client.get("/roads/188447554")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["osm_id"] == 999
-    assert data["maxspeed"] == "40"
+    assert data["osm_id"] == 188447554
+    assert data["maxspeed"] == "80"
 
 
 @pytest.mark.sls

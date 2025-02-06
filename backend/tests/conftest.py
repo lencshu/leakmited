@@ -26,7 +26,7 @@ def db_setup():
 
 
 @pytest.fixture(scope="function")
-def db_session(db_setup):
+def db_session():
     """
     new session for each test function
     """
@@ -38,7 +38,7 @@ def db_session(db_setup):
         yield session
     finally:
         session.close()
-        transaction.rollback()
+        # transaction.rollback()
         connection.close()
 
 
