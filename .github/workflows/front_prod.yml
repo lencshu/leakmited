@@ -23,6 +23,9 @@ jobs:
         working-directory: frontend
 
       - name: Install dependencies with pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies with pnpm
         run: pnpm install
         working-directory: frontend
 
