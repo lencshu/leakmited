@@ -4,3 +4,5 @@ import { writable } from 'svelte/store'
 export const selectedSpeeds = writable<Set<number>>(new Set())
 
 export const roadsData = writable<any[]>([])
+
+export const roadsStatsData = writable<any[]>([])

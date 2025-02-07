@@ -6,13 +6,18 @@
   import Loading from '$lib/components/Loading.svelte'
   import { fetchRoadsStats } from '$lib/utils/api'
   import { roadsData } from '$lib/stores/roadsStore'
+  import { get } from 'svelte/store'
 
   let pageLoading = true
   let mapLoading = false
 
   onMount(async () => {
-    const dataStats = await fetchRoadsStats()
-    roadsData.set(dataStats)
+    const storedRoads = get(roadsData)
+    if (storedRoads.length === 0) {
+      const dataStats = await fetchRoadsStats()
+      roadsData.set(dataStats)
+    }
+
     pageLoading = false
   })
 
