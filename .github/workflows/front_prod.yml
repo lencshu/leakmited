@@ -18,11 +18,17 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+        working-directory: frontend
+
       - name: Install dependencies with pnpm
         run: pnpm install
+        working-directory: frontend
 
       - name: Build app
         run: pnpm run build
+        working-directory: frontend
 
       - name: Deploy to AWS S3
         uses: jakejarvis/s3-sync-action@master
@@ -33,7 +39,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           AWS_REGION: 'eu-west-3'
-          SOURCE_DIR: 'dist/'
+          SOURCE_DIR: 'frontend/dist/'
 
   cacheClean:
     needs: [deploy]
