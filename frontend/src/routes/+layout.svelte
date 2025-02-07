@@ -1,7 +1,18 @@
 <script lang="ts">
-	import '../app.css';
-	export const prerender = true;
-	let { children } = $props();
+  import '../app.css'
+  import 'leaflet/dist/leaflet.css'
+  import Header from '$components/Header.svelte'
+  import Footer from '$components/Footer.svelte'
+  let { children } = $props()
 </script>
 
-{@render children()}
+<div class="flex flex-col min-h-screen">
+  <Header />
+
+  <!-- flex-grow autofill space left -->
+  <main class="flex-grow">
+    {@render children()}
+  </main>
+
+  <Footer />
+</div>
