@@ -8,13 +8,6 @@ from src.routers import roads, stats
 
 app = FastAPI(title="Leakmited Road Network API", description="Demo backend with FastAPI + PostGIS (planet_osm_line)", version="1.0.0")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 metadata.create_all(bind=engine)
 
 app.include_router(roads.router)

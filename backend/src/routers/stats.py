@@ -43,7 +43,8 @@ def get_stats(db: Session = Depends(get_db)):
 
     dist_dict = {}
     for ms, cnt in rows:
-        label = ms if ms else "Unknown"
-        dist_dict[label] = cnt
+        if ms in ["30", "50", "70", "90", "110", "130"]:
+            label = ms
+            dist_dict[label] = cnt
 
     return StatsBase(total_length=total_length_meter, speed_distribution=dist_dict)

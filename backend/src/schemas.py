@@ -1,6 +1,22 @@
-# app/schemas.py
-from typing import Optional
+# src/schemas.py
 from pydantic import BaseModel
+from typing import List, Optional
+
+
+class Geometry(BaseModel):
+    type: str
+    coordinates: List[List[float]]  # 每个坐标为 [lon, lat]
+
+
+class RoadProperties(BaseModel):
+    maxspeed: Optional[int]
+    highway: Optional[str]
+    osm_id: int
+
+
+class RoadGeoJSON(BaseModel):
+    geometry: Geometry
+    properties: RoadProperties
 
 
 class RoadBase(BaseModel):
