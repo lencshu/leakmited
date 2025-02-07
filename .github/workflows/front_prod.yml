@@ -22,7 +22,7 @@ jobs:
         run: pnpm install
 
       - name: Build app
-        run: pnpm run build:prod
+        run: pnpm run build
 
       - name: Deploy to AWS S3
         uses: jakejarvis/s3-sync-action@master
