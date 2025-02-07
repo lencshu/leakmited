@@ -54,4 +54,4 @@ jobs:
           aws-region: eu-west-3
 
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id E14PO8ZDCHOXW2 --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id E3V7H8JOLGDJ0C --paths "/*"
