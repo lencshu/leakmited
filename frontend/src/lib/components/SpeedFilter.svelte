@@ -73,7 +73,8 @@
     {#each speedOptions as opt}
       <div class="flex flex-col items-center">
         <label class="flex items-center space-x-1">
-          <input type="checkbox" value={opt.value} on:change={() => onCheckboxChange(opt.value)} />
+          <!-- Bind the checkbox's checked attribute -->
+          <input type="checkbox" value={opt.value} checked={$selectedSpeeds.has(opt.value)} on:change={() => onCheckboxChange(opt.value)} />
           <span class="text-sm">{opt.label}</span>
         </label>
         <div class="mt-1 w-12 h-3 rounded-full" style="background-color: {opt.color};"></div>
