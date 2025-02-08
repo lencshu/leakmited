@@ -21,45 +21,47 @@
    */
   async function onCheckboxChange(value: number) {
     const currentSet = new Set(get(selectedSpeeds))
-    if (currentSet.has(value)) {
+    const wasPresent = currentSet.has(value)
+
+    // if the value was already present, remove it; otherwise, add it
+    if (wasPresent) {
       currentSet.delete(value)
+      removeRoadsData(value) // remove data related to the deselected speed
     } else {
       currentSet.add(value)
+      await fetchNewRoadsData(value) // only fetch new data for newly selected speed
     }
+
     selectedSpeeds.set(currentSet)
-    // Call callback prop for loading start
+  }
+
+  // function to fetch only the new roads data when a new speed is selected
+  async function fetchNewRoadsData(speed: number) {
     onLoadingStart()
-    await fetchSelectedRoads()
-    // Call callback prop for loading end
+
+    const res = await fetchRoadsBySpeed(speed)
+    const processedData = res.map((road: any) => {
+      // modify the returned data structure
+      return {
+        geometry: {
+          type: 'LineString',
+          coordinates: road.geometry.coordinates,
+        },
+        properties: {
+          maxspeed: speed,
+        },
+      }
+    })
+
+    // add only new data
+    roadsData.update((currentData) => [...currentData, ...processedData])
+
     onLoadingEnd()
   }
 
-  // Function to fetch selected roads and process data
-  async function fetchSelectedRoads() {
-    const speedsArray = Array.from(get(selectedSpeeds))
-    if (speedsArray.length === 0) {
-      roadsData.set([])
-      return
-    }
-    let allRoads: any[] = []
-
-    for (let sp of speedsArray) {
-      const res = await fetchRoadsBySpeed(sp)
-      const processedData = res.map((road: any) => {
-        // modify the returned data structure
-        return {
-          geometry: {
-            type: 'LineString',
-            coordinates: road.geometry.coordinates,
-          },
-          properties: {
-            maxspeed: sp,
-          },
-        }
-      })
-      allRoads = allRoads.concat(processedData)
-    }
-    roadsData.set(allRoads)
+  // remove the data related to a deselected speed from the store
+  function removeRoadsData(speed: number) {
+    roadsData.update((currentData) => currentData.filter((road) => road.properties.maxspeed !== speed))
   }
 </script>
 
