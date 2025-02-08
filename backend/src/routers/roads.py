@@ -71,6 +71,7 @@ def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(No
         query = query.filter(PlanetOSMLine.tags["maxspeed"] == max_speed)
     # Limit to ROADS_NUM_LIMIT entries to avoid excessive data size.
     roads = query.limit(ROADS_NUM_LIMIT).all()
+    print(f"Found {len(roads)} roads for speedlimit {max_speed}")
     return [road_to_geojson(road) for road in roads]
 
 
