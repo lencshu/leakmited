@@ -2,6 +2,8 @@
 import os
 from pydantic_settings import BaseSettings
 
+ROADS_NUM_LIMIT = 100000
+
 
 class Settings(BaseSettings):
     DB_HOST: str

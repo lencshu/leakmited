@@ -1,6 +1,8 @@
 # tests/test_routers_roads.py
 import pytest
 
+from src.core.config import ROADS_NUM_LIMIT
+
 
 @pytest.mark.sls
 def test_get_roads_no_filters(client):
@@ -8,7 +10,7 @@ def test_get_roads_no_filters(client):
     resp = client.get("/roads/")
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 500
+    assert len(data) <= ROADS_NUM_LIMIT
 
 
 @pytest.mark.sls
@@ -17,7 +19,7 @@ def test_get_roads_filter_maxspeed(client):
     resp = client.get("/roads/?max_speed=50")
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data) == 500
+    assert len(data) <= ROADS_NUM_LIMIT
 
 
 @pytest.mark.sls

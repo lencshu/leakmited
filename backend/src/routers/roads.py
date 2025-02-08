@@ -7,6 +7,7 @@ from typing import Optional, List
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape
 
+from src.core.config import ROADS_NUM_LIMIT
 from src.core.database import get_db
 from src.models import PlanetOSMLine
 from src.schemas import RoadGeoJSON
@@ -62,8 +63,8 @@ def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(No
     query = query.filter(PlanetOSMLine.tags.has_key("maxspeed"))
     if max_speed:
         query = query.filter(PlanetOSMLine.tags["maxspeed"] == max_speed)
-    # Limit to 500 entries to avoid excessive data size.
-    roads = query.limit(500).all()
+    # Limit to ROADS_NUM_LIMIT entries to avoid excessive data size.
+    roads = query.limit(ROADS_NUM_LIMIT).all()
     return [road_to_geojson(road) for road in roads]
 
 
