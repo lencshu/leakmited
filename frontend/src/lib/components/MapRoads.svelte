@@ -12,7 +12,7 @@
   onMount(() => {
     map = L.map('mapid', {
       center: [48.8566, 2.3522],
-      zoom: 8,
+      zoom: 11,
       zoomControl: false,
     })
 

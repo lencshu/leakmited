@@ -4,8 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
-		"dev:remote": "vite dev --mode dev",
+		"dev": "vite dev --mode dev",
+		"dev:local": "vite dev",
 		"build": "vite build --mode dev",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",

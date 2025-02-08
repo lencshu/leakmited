@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { roadsData } from '$lib/stores/roadsStore'
+  import { onMount, tick, onDestroy } from 'svelte'
+  import { roadsStatsData } from '$lib/stores/roadsStore'
   import Chart from 'chart.js/auto'
   import { get } from 'svelte/store'
   import { getColorBySpeedNum } from '$lib/utils/mapping'
@@ -9,17 +9,13 @@
   let chartCanvas: HTMLCanvasElement
   let chartInstance: Chart | null = null
 
-  onMount(() => {
-    // roadsData.set(mockPieChart)
+  onMount(async () => {
+    const data = get(roadsStatsData)
+    console.log('data pie', data)
+    updateChart(data)
   })
 
-  // update chart only when chartCanvas available
-  $: if (chartCanvas) {
-    const data = get(roadsData)
-    updateChart(data)
-  }
-
-  function updateChart(data: any[]) {
+  async function updateChart(data: any[]) {
     const speedCount: Record<string, number> = {}
     data.forEach((road) => {
       const sp = road.maxspeed ?? 'Unknown'
@@ -29,10 +25,13 @@
     const labels = Object.keys(speedCount)
     const counts = labels.map((l) => speedCount[l])
 
-    // destroy if already exists
+    // Destroy existing chart instance if it exists to avoid reinitialization
     if (chartInstance) {
       chartInstance.destroy()
+      chartInstance = null
     }
+    // waiting for DOM, then render <canvas>
+    await tick()
 
     const backgroundColors = labels.map((l) => getColorBySpeed(l))
 
@@ -67,6 +66,14 @@
     const speed = parseInt(sp, 10)
     return getColorBySpeedNum(speed)
   }
+
+  // Clean up chart instance on component destroy to avoid memory leaks and reinit issues
+  onDestroy(() => {
+    if (chartInstance) {
+      chartInstance.destroy()
+      chartInstance = null
+    }
+  })
 </script>
 
 <div class="p-4">
