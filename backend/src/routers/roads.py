@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast
 from typing import Optional, List
-
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape
 
@@ -13,6 +12,9 @@ from src.models import PlanetOSMLine
 from src.schemas import RoadGeoJSON
 
 router = APIRouter()
+
+# Global variable to cache results for each max_speed query
+roads_cache = {}
 
 
 def road_to_geojson(road: PlanetOSMLine) -> dict:
@@ -64,6 +66,13 @@ def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(No
     """
     Retrieve a list of roads with maxspeed information, optionally filtering by max_speed.
     """
+    # Check if the result for this max_speed is already cached
+    if max_speed in roads_cache:
+        # return the cached data if cached
+        print(f"Returning cached data for speedlimit {max_speed}")
+        return roads_cache[max_speed]
+
+    # otherwise, query the database and cache the result
     query = db.query(PlanetOSMLine)
     # Return only roads that have maxspeed.
     query = query.filter(PlanetOSMLine.tags.has_key("maxspeed"))
@@ -72,7 +81,13 @@ def get_roads(db: Session = Depends(get_db), max_speed: Optional[str] = Query(No
     # Limit to ROADS_NUM_LIMIT entries to avoid excessive data size.
     roads = query.limit(ROADS_NUM_LIMIT).all()
     print(f"Found {len(roads)} roads for speedlimit {max_speed}")
-    return [road_to_geojson(road) for road in roads]
+
+    processed_roads = [road_to_geojson(road) for road in roads]
+
+    # Cache the result for future use
+    roads_cache[max_speed] = processed_roads
+
+    return processed_roads
 
 
 @router.get("/roads/{osm_id}", response_model=RoadGeoJSON)
