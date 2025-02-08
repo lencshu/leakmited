@@ -38,19 +38,25 @@ def road_to_geojson(road: PlanetOSMLine) -> dict:
         # convert Shapely to [[lon, lat], [lon, lat], ...]
         coordinates = [list(coord) for coord in shape.coords]
 
-    geometry = {"type": "LineString", "coordinates": coordinates}
-
-    try:
-        maxspeed_val = int(road.maxspeed) if road.maxspeed is not None else None
-    except ValueError:
-        maxspeed_val = None
-
-    properties = {
-        "maxspeed": maxspeed_val,
-        "highway": road.highway,
-        "osm_id": road.osm_id,
+    geometry = {
+        # "type": "LineString",
+        "coordinates": coordinates,
     }
-    return {"geometry": geometry, "properties": properties}
+
+    # try:
+    #     maxspeed_val = int(road.maxspeed) if road.maxspeed is not None else None
+    # except ValueError:
+    #     maxspeed_val = None
+
+    # properties = {
+    #     "maxspeed": maxspeed_val,
+    #     "highway": road.highway,
+    #     "osm_id": road.osm_id,
+    # }
+    return {
+        "geometry": geometry,
+        # "properties": properties,
+    }
 
 
 @router.get("/roads", response_model=List[RoadGeoJSON])
