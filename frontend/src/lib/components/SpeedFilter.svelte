@@ -34,6 +34,7 @@
     onLoadingEnd()
   }
 
+  // Function to fetch selected roads and process data
   async function fetchSelectedRoads() {
     const speedsArray = Array.from(get(selectedSpeeds))
     if (speedsArray.length === 0) {
@@ -41,9 +42,22 @@
       return
     }
     let allRoads: any[] = []
+
     for (let sp of speedsArray) {
       const res = await fetchRoadsBySpeed(sp)
-      allRoads = allRoads.concat(res)
+      const processedData = res.map((road: any) => {
+        // modify the returned data structure
+        return {
+          geometry: {
+            type: 'LineString',
+            coordinates: road.geometry.coordinates,
+          },
+          properties: {
+            maxspeed: sp,
+          },
+        }
+      })
+      allRoads = allRoads.concat(processedData)
     }
     roadsData.set(allRoads)
   }

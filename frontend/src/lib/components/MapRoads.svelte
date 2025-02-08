@@ -46,16 +46,17 @@
           properties: item.properties,
         })),
       }
-
+      console.log("geojsonData:", geojsonData.features.slice(0, 10));
       roadsLayer = L.geoJSON(geojsonData, {
         style: styleFeature,
         onEachFeature: (feature, layer) => {
           // tooltip
           layer.on('click', () => {
             const maxSpeed = feature.properties?.maxspeed || 'Unknown'
-            const highway = feature.properties?.highway || 'Unknown'
-            const osmId = feature.properties?.osm_id || 'Unknown'
-            const contentStr = `<b>Max Speed:</b> ${maxSpeed} km/h</br><b>Type</b>: ${highway}</br><b>osmId</b>: ${osmId}`
+            // const highway = feature.properties?.highway || 'Unknown'
+            // const osmId = feature.properties?.osm_id || 'Unknown'
+            // const contentStr = `<b>Max Speed:</b> ${maxSpeed} km/h</br><b>Type</b>: ${highway}</br><b>osmId</b>: ${osmId}`
+            const contentStr = `<b>Max Speed:</b> ${maxSpeed} km/h`
             L.popup().setLatLng(layer.getBounds().getCenter()).setContent(contentStr).openOn(map)
           })
         },
