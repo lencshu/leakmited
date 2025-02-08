@@ -113,6 +113,8 @@ def get_roads_statistics(db: Session = Depends(get_db)):
        { "maxspeed": 90, "km": 40000 },
     ]
     """
+    if "stats" in roads_cache:
+        return roads_cache["stats"]
     results = (
         db.query(PlanetOSMLine.tags["maxspeed"].label("maxspeed"), (func.sum(func.ST_Length(cast(PlanetOSMLine.way, Geography))) / 1000.0).label("km"))
         .filter(PlanetOSMLine.tags.has_key("maxspeed"))
@@ -127,4 +129,5 @@ def get_roads_statistics(db: Session = Depends(get_db)):
         except (ValueError, TypeError):
             ms = None
         stats.append({"maxspeed": ms, "km": float(row.km)})
+    roads_cache["stats"] = stats
     return stats

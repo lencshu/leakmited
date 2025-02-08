@@ -10,6 +10,9 @@ from src.schemas import StatsBase
 
 router = APIRouter()
 
+# Global cache to store the results of stats queries
+stats_cache = {}
+
 
 @router.get("/")
 async def root(request: Request):
@@ -25,15 +28,17 @@ def get_stats(db: Session = Depends(get_db)):
     - total_length: ST_Length(way)
     - speed_distribution: number of roads for each maxspeed value
     """
+    # Check if the stats are already cached
+    if "stats" in stats_cache:
+        print("returning cached stats data")
+        return stats_cache["stats"]
 
     # ST_Length(way) returns values in degrees when using SRID=4326
     # total_length_deg = db.query(func.sum(func.ST_Length(PlanetOSMLine.way))).scalar() or 0.0
 
-    # in meter
-    # total_length_meter = db.query(func.sum(func.ST_Length(PlanetOSMLine.way.op("::geography")))).scalar() or 0.0
+    # query for total length of all roads in meters
     total_length_meter = db.query(func.sum(func.ST_Length(cast(PlanetOSMLine.way, Geography)))).scalar() or 0.0
 
-    # number of roads for each maxspeed value
     rows = (
         db.query(PlanetOSMLine.tags["maxspeed"].label("maxspeed"), func.count(PlanetOSMLine.osm_id))
         .filter(PlanetOSMLine.tags.has_key("maxspeed"))
@@ -47,4 +52,8 @@ def get_stats(db: Session = Depends(get_db)):
             label = ms
             dist_dict[label] = cnt
 
-    return StatsBase(total_length=total_length_meter, speed_distribution=dist_dict)
+    # cache to reuse for the next time
+    stats_data = StatsBase(total_length=total_length_meter, speed_distribution=dist_dict)
+    stats_cache["stats"] = stats_data
+
+    return stats_data
