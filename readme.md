@@ -1,107 +1,183 @@
 [TOC]
 
-# Leakmited technical test for developers
+# Exigences du projet.
 
-## Objective
+[CDC](./_doc/req.md)
 
-The goal of this test is to assess your technical ability to integrate with our team at Leakmited. Our work primarily involves displaying and interacting with data on a map. In this task, you will create an application using SvelteKit to display a dashboard with statistics and data visualization on a map.
+# Planning
 
-You’ll have up to **2 weeks** to complete the test
+[Planning](./_doc/planning.md)
 
-## Contact
+# Implémentation technique spécifique.
 
-If you have any questions or need clarification, feel free to contact us: **Email**: yunus.bulbul@leakmited.com
+## Livrable du projet
 
-## Submission
+L’ensemble du projet, frontend et backend, est entièrement configuré avec une CI/CD en utilisant github actions, le backend utilise également le Serverless Framework pour faciliter la surveillance, la gestion et le déploiement. Toutes les modifications sont automatiquement testées et déployées sur AWS.
 
-Please upload your code to any hosted version control service (e.g., GitHub, GitLab) and provide us access.
+- **Mono repo** : Les projets frontend et backend sont respectivement situés dans les dossiers frontend et backend. Le frontend déclenche le pipeline CI/CD et les opérations de déploiement via la branche `fprod`. Le backend est déployé lorsqu’un push est effectué sur la branche `bprod`.
 
-## Project Details
+- **Frontend** : Il est déployé sous forme de pages statiques sur S3, avec CloudFront configuré pour permettre l’accès externe. voici le lien: [https://d35uth7kuvvexq.cloudfront.net](https://d35uth7kuvvexq.cloudfront.net/)
 
-### Data Input
+- **Backend** : Tout le projet est déployé en utilisant Lambda Function URLs, ce qui permet d’obtenir directement une URL publique. De plus, une documentation interactive est automatiquement générée pour decrire l’API RESTful. voici le lien [https://banct6txmmohof735llh5quy6m0pzdua.lambda-url.eu-west-3.on.aws/docs](https://banct6txmmohof735llh5quy6m0pzdua.lambda-url.eu-west-3.on.aws/docs)
 
-You will work with the road network of Ile-de-France. The dataset can be downloaded from this link.
+- **DB** : Si la base de données utilise AWS RDS for PostgreSQL, elle engendrera des coûts quotidiens. Par conséquent, en guise de compromis, elle a été déployée sur mon propre serveur, où la vitesse de test est acceptable.
 
-### Features to Implement
+- **CI/CD** et **unit test** : Les configurations GitHub Actions et Serverless sont prêtes à l’emploi et peuvent être facilement migrées vers un autre environnement de développement. Dans le pipeline CI/CD, le frontend utilise le **prebuild** hook pour imposer les tests unitaires. le backend dispose d’une étape dédiée pour exécuter les tests avec pytest, afin de réduire les bugs dans le code en production.
 
-Our Product Manager has provided the following sketch, features and priorities for the app:
+## backend
 
-1\. **Map display**
+### quick start
 
-Display all the roads of Ile-de-France on a map.
+Comme le backeend est entièrement déployé sur AWS sous forme de Lambda Function URLs, il n’est pas nécessaire d’utiliser Docker pour l’emballer en image.
+Donc, si l’on veut exécuter le projet en local, il faudra configurer manuellement l’environnement d’exécution.
 
-Allow the user to filter roads based on their maximum speed limit.
+```bash
+# un env virtuel est recommandé
+# Il est recommandé aussi d’utiliser Python 3.9 afin de rester cohérent avec l’env cloud
+virtualenv .venv
+source .venv/bin/activate
 
-2\. **Interactive map**
+# Installer les dépendances de l’env
+cd backend
+pip install -r requirements.txt
+```
 
-Make roads selectable.
+Placer le fichier de configuration de la base de données `.env.dev` dans le dossier backend.
+Le format du fichier est le suivant :
 
-Display a tooltip with the maximum speed of the selected road.
+```env
+DB_USER=***
+DB_PASS=***
+DB_HOST=***
+DB_PORT=***
+DB_NAME=***
+```
 
-3\. **Dashboard**
+Commencez par exécuter pytest pour vérifier si la configuration est correcte :
 
-Create a separate dashboard page displaying graphs and statistics about the road network, such as:
+```sh
+pytest -vv -W ignore::DeprecationWarning -m sls
+```
 
-Distribution of road kilometers by maximum speed.
+Ensuite, dans le dossier backend, exécutez la commande suivante pour lancer le backend FastAPI :
 
-Total length of the road network.
+```sh
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-### Additional requirements
+### Technologies
 
-**Documentation**: Provide instructions on how to install and run your project
+#### Technologies principales
 
-**Time estimate**: Before starting, please provide a rough time estimate for th task.
+- **FastAPI** : Cadre Python permettant de définir des endpoints RESTFul.
+- **SQLAlchemy** + **PostgreSQL** : Gestion de la base de données relationnelle et du stockage géographique.
+- **HStore** et **PostGIS**：Les données de routes sont importées automatiquement via **osm2pgsql** et stockées dans une table contenant des champs géométriques (LINESTRING) et un champ HSTORE pour divers attributs (maxspeed, etc.). Pour optimiser davantage, il est possible d’utiliser un fichier de style personnalisé afin d’extraire la limite de vitesse maximale en tant que colonne distincte.
+- **Mangum** : Utilisé pour déployer FastAPI sur AWS Lambda (serverless). Cela permet également de garder l’exécution locale fonctionnelle, facilitant ainsi le débogage et le développement en temps réel.
+- **GZip** : Les réponses du backend sont compressées pour alléger le volume de données transférées.
 
-Leakmited technical test for developers 2  
-**Trade-offs**: In your documentation, explain any trade-offs or compromise you made due to time or technical constraints.
+- **cache** : Utiliser des variables globales comme cache afin d’optimiser la vitesse des requêtes. D’après les tests, cela permet au moins de doubler la vitesse d’exécution.
 
-**(Bonus)**: Deploy your solution to AWS, Vercel, or Netlify and include the lin
+#### Endpoints majeurs
 
-### Tools & restrictions
+- **/roads** : Permet d’obtenir la liste des routes avec une vitesse max éventuelle (?max_speed=50, etc.). Retourne généralement un format GeoJSON ou un tableau d’objets.
+- **/roads-statistics** : Retourne une répartition de la longueur totale pour différents paliers de vitesse (30, 50, 70, 90 km/h).
+- **/stats** : Renvoie un objet global contenant la longueur totale du réseau et, au besoin, d’autres informations telles que la distribution des routes.
 
-You can use any libraries or tools for rendering maps, such as Leaflet or OpenLayers.
+#### CI/CD
 
-You **cannot** use any SaaS services (e.g., Mapbox Tile services) for serving data
+voici le lien serverless : [https://app.serverless.com/demov/apps](https://app.serverless.com/demov/apps)
+voici le lien github actions front : [https://github.com/lencshu/leakmited/actions/workflows/front_prod.yml](https://github.com/lencshu/leakmited/actions/workflows/front_prod.yml)
+voici le lien github actions back : [https://github.com/lencshu/leakmited/actions/workflows/back_prod.yml](https://github.com/lencshu/leakmited/actions/workflows/back_prod.yml)
 
-### Evaluation criteria
+## frontend
 
-We will evaluate your submission based on the following:
+### quick start
 
-**Code quality**: Clean, readable, and maintainable code
+Le frontend utilise pnpm pour la gestion des packages
 
-**Feature completion**: How well the required features are implemented **Testing**: Include unit or integration tests if possible
+```sh
+npm install -g pnpm
+```
 
-**UI/UX**: User experience and interface design
+Initialisation et exécution du projet
 
-**Documentation**: Clear instructions for setting up and using the project
+```sh
+cd frontend
+pnpm install
+# Par défaut, le projet utilisera l’adresse API du backend définie dans .env.dev
+pnpm run dev
+# pour utiliser l’API backend locale, exécute la commande suivante dans le dossier frontend
+pnpm run dev:local
 
-**Creativity**: Any improvements or additional features beyond the basi requirements.
+# test unitaire
+pnpm run test
+```
 
-# Solution
+### Technologies principales
 
-## Stratégie
+- **SvelteKit** : Utilisation du framework conformément aux exigences.
+- **Leaflet** : Librairie JavaScript pour l’affichage cartographique.
+- **Chart.js** : Outil de visualisation pour créer des diagrammes
+- **Vitest** : Outil de test unitaire pour valider la logique frontend.
+- **Tailwind CSS** : Framework CSS pour la mise en page rapide.
+- **Cache local** : Éviter de redemander au backend les mêmes vitesses déjà chargées (cache en mémoire).
+- **Lazy loading** : Sur Leaflet, limiter l’affichage aux routes de la zone visible, ou réaliser un clustering / simplification si la quantité de données est très élevée.
 
-- SvelteKit Frontend
+### Composants clés
 
-  - AWS pour le déploiement, prévoir d’utiliser S3 + CloudFront au lieu du SSR afin de simplifier le déploiement
-  - RESTful API pour la communication avec le backend
+1. **MapRoads** :
 
-- fastapi (python) pour le backend
+- Affiche la carte Leaflet, récupère la liste des routes depuis un store global, applique un style selon la vitesse, propose des popups avec la vitesse max, etc.
 
-  - AWS pour le déploiement
-  - Déployer ce framework sur AWS Lambda afin de mieux équilibrer coût et performance.
-  - Fournir une API de requête de données géographiques (avec filtres, pagination, etc.).
-  - Fournir une API de statistiques (longueur des routes, distribution des vitesses).
-  - Interagir avec PostGIS pour récupérer ou agréger des données géographiques.
+2. **SpeedFilter** :
 
-- Postgres pour la base de données
-  - Amazon RDS for PostgreSQL avec PostGIS
-  - Utiliser une bounding box pour renvoyer dynamiquement les données en fonction de la zone visible.
+- Permet de sélectionner/désélectionner des vitesses (30, 50, 70, 90 km/h). Chaque changement met à jour un store Svelte (selectedSpeeds) et récupère ou supprime les routes correspondantes du store (roadsData).
 
-## Chiffrage
+3. **SpeedPieChart** :
 
-1. Données et base de données : Parsing du fichier .pbf et importation dans PostGIS – 1 jour, un ticket avec une estimation à 5.
-2. Back-end API : Fournir des fonctionnalités de requête, filtrage et statistiques sur les segments de route – 1 jour, Un ticket de 5
-3. Front-end SvelteKit : Visualisation cartographique, filtres interactifs, tooltips, tableau de bord – 2 jours, Un ticket de 8
-4. CI/CD AWS avec github actions – 1 jour, un ticket de 3
-5. Documentation et tests – 0.5 jour, un ticket de 2
+- Affiche un diagramme montrant la répartition des routes par vitesse. Lit directement la liste de routes dans le store.
+
+4. **Dashboard Stats** :
+
+- Permet de présenter la longueur totale du réseau, ainsi que la répartition par vitesse.
+
+## conclusion
+
+### Points forts du projet
+
+- **Modernité et scalabilité** : L’architecture serverless du backend permet une mise à l’échelle automatique et un coût maîtrisé.
+- **Qualité et fiabilité** : Une solide stratégie de tests et une pipeline CI/CD garantissent la robustesse et la maintenabilité du système.
+- **Adaptation aux exigences métiers**, La conception répond aux exigences fonctionnelles:
+  - [x] Map display: Display all & filter by speed
+  - [x] Interactive map: roads selectable & tooltip
+  - [x] Dashboard: separate dashboard page & Distribution & Total length of the road network
+  - [x] Documentation: how to install and run your project
+  - [x] AWS Deployment: deploy on AWS
+  - [x] Unit tests
+  - [x] User experience and interface design
+  - [x] Additional features:
+    - [x] Le développement du backend a suivi une approche TDD (Test-Driven Development), en commençant par des tests unitaires pour chaque module, puis en procédant à des itérations rapides
+    - [x] Lazy loading de la carte côté frontend
+    - [x] Cache mémoire pour le frontend et le backend
+    - [x] Optimisation des coûts à l’extrême, avec quasiment aucune dépense
+    - [x] Configuration CI/CD complète pour le frontend et le backend, prête à l’emploi
+    - [x] Les adresses HTTPS accessibles pour le frontend et le backend à distance
+    - [x] Le frontend et le backend peuvent être facilement exécutés et débogués en local, même avec le déploiement backend basé sur AWS Lambda.
+    - [x] Le backend peut renvoyer plus de données afin que le frontend puisse afficher des informations supplémentaires lors du clic sur une route, comme le type de route ou l’ID dans la base de données. Cependant, pour réduire la taille des réponses API, ces champs ont été temporairement commentés.
+    - [x] Le backend a un variable globale pour limiter la taille des données renvoyées, actuellement fixée à 100 000 entrées. Étant donné le volume important des données, cette limite permet de maintenir une lisibilité acceptable sur la carte. Elle peut être ajustée en fonction des besoins.
+    - [x] Gzip compression pour réduire la taille des données transmises entre le backend et le frontend.
+    - [x] Les informations sensibles sont transmises au projet via GitHub Secrets lors de l’exécution du CI/CD et sont configurées comme variables d’environnement pour la fonction Lambda
+    - [x] Le développement suit une approche frontend / backend séparée, avec l’utilisation de données mockées côté frontend pour accélérer le développement
+    - [x] Réutiliser le code autant que possible, par exemple avec la fonction getColorBySpeedNum du frontend
+
+### Trade-offs
+
+(La première semaine a été plus chargée que prévu, le développement n’a pris qu’une semaine)
+
+- Comme je n’étais pas familier avec Svelte au départ, le développement du frontend n’a pas suivi une approche TDD.
+- Bien que le frontend utilise déjà le lazy loading, la quantité de données étant trop importante, le chargement de toutes les routes simultanément entraîne un certain ralentissement de la page. À optimiser. il est envisageable d’utiliser une **bounding box** afin que le frontend ne charge et ne traite que les données situées dans la zone visible de la carte
+- Pour des raisons de coût, la base de données n’utilise pas le service AWS RDS. Étant hébergée sur mon propre serveur, il y a un compromis sur la vitesse des requêtes, mais les performances restent suffisantes pour une utilisation courante.
+- La gestion des erreurs pourrait être plus complète.
+- Le frontend pourrait utiliser des `interfaces` pour appliquer une vérification stricte des modèles de données. Actuellement, seules les données statistiques ont une `interface` définie.
+- Avec plus de temps, l’affichage sur mobile pourrait être optimisé pour rendre l’interface plus responsive. Cependant, comme Tailwind CSS est utilisé, le développement sera relativement rapide
+- Étant donné qu’il est complexe de manipuler directement le DOM pour les tests dans SvelteKit, cela prendrait du temps. C’est pourquoi les tests d’intégration frontend/backend n’ont pas été réalisés.

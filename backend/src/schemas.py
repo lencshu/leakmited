@@ -5,7 +5,7 @@ from typing import List, Optional
 
 class Geometry(BaseModel):
     # type: str
-    coordinates: List[List[float]]  # 每个坐标为 [lon, lat]
+    coordinates: List[List[float]]
 
 
 class RoadProperties(BaseModel):

@@ -5,3 +5,4 @@ geoalchemy2[shapely]
 psycopg2-binary
 pydantic-settings
 python-dotenv
+pytest
