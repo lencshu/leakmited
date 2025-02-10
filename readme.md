@@ -181,3 +181,4 @@ pnpm run test
 - Le frontend pourrait utiliser des `interfaces` pour appliquer une vérification stricte des modèles de données. Actuellement, seules les données statistiques ont une `interface` définie.
 - Avec plus de temps, l’affichage sur mobile pourrait être optimisé pour rendre l’interface plus responsive. Cependant, comme Tailwind CSS est utilisé, le développement sera relativement rapide
 - Étant donné qu’il est complexe de manipuler directement le DOM pour les tests dans SvelteKit, cela prendrait du temps. C’est pourquoi les tests d’intégration frontend/backend n’ont pas été réalisés.
+- Lambda a un temps de cold start, qui peut être réduit en utilisant des instances provisionnées (Provisioned Concurrency) pour accélérer le premier accès. En cas de forte affluence attendue, il est aussi possible de préchauffer la fonction en la réveillant à l’avance via un appel programmé.
