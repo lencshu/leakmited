@@ -2,7 +2,7 @@
 import os
 from pydantic_settings import BaseSettings
 
-ROADS_NUM_LIMIT = 100000
+ROADS_NUM_LIMIT = 500
 
 
 class Settings(BaseSettings):
