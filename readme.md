@@ -4,9 +4,13 @@
 
 [CDC](./_doc/req.md)
 
+[CDC Html](./_doc/req.html)
+
 # Planning
 
 [Planning](./_doc/planning.md)
+
+[Planning Html](./_doc/planning.html)
 
 # Implémentation technique spécifique.
 
@@ -24,7 +28,23 @@ L’ensemble du projet, frontend et backend, est entièrement configuré avec un
 
 - **CI/CD** et **unit test** : Les configurations GitHub Actions et Serverless sont prêtes à l’emploi et peuvent être facilement migrées vers un autre environnement de développement. Dans le pipeline CI/CD, le frontend utilise le **prebuild** hook pour imposer les tests unitaires. le backend dispose d’une étape dédiée pour exécuter les tests avec pytest, afin de réduire les bugs dans le code en production.
 
+### Full Architecture
+
+![Full Architecture](./_doc/imgs/fullArchi.svg)
+
+### Sequence Diagram
+
+![Sequence flow](./_doc/imgs/fullSeq.svg)
+
 ## backend
+
+### Architecture
+
+![Backend Architecture](./_doc/imgs/backArchi.svg)
+
+### Data Flowchart
+
+![Backend Flow](./_doc/imgs/backFlow.svg)
 
 ### quick start
 
@@ -90,6 +110,15 @@ voici le lien github actions front : [https://github.com/lencshu/leakmited/actio
 voici le lien github actions back : [https://github.com/lencshu/leakmited/actions/workflows/back_prod.yml](https://github.com/lencshu/leakmited/actions/workflows/back_prod.yml)
 
 ## frontend
+
+### Architecture
+
+
+![Frontend Architecture](./_doc/imgs/frontArchi.svg)
+
+### Data Flowchart
+
+![Frontend Flow](./_doc/imgs/frontFlow.svg)
 
 ### quick start
 

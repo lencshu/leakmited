@@ -24,6 +24,8 @@ You will work with the road network of Ile-de-France. The dataset can be downloa
 
 Our Product Manager has provided the following sketch, features and priorities for the app:
 
+![feature](./imgs/req.jpg)
+
 1\. **Map display**
 
 Display all the roads of Ile-de-France on a map.
